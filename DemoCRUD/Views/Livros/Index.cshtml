@@ -1,0 +1,78 @@
+﻿
+
+@{
+    ViewBag.Title = "Listar Livros";
+}
+
+<h2>@ViewBag.Title</h2>
+
+<p>
+    <a href="@Url.Action("Create")" class="btn btn-primary">
+        <span class="glyphicon glyphicon-plus" aria-hidden="true"></span>
+        Novo Livro
+    </a>
+</p>
+
+<form class="form-inline">
+    <div class="form-group">
+        <label class="sr-only">Título</label>
+        <input type="text" name="Titulo" class="form-control" placeholder="Título">
+    </div>
+    <div class="form-group">
+        <label class="sr-only">Autor</label>
+        <input type="text" name="Autor" class="form-control" placeholder="Autor">
+    </div>
+    <div class="form-group">
+        <label class="sr-only">Ano da Edição</label>
+        <input type="text" name="AnoEdicao" class="form-control" placeholder="Ano da Edição">
+    </div>
+    <div class="form-group">
+        <label class="sr-only">Valor</label>
+        <input type="text" name="Valor" class="form-control" placeholder="Valor">
+    </div>
+    <button type="button" id="btnPesquisar" class="btn btn-default">
+        <span class="glyphicon glyphicon-search" aria-hidden="true"></span>
+        Pesquisar
+    </button>
+    <input type="hidden" name="pagina" value="1" />
+    <input type="hidden" name="registros" value="10" />
+</form>
+
+<div id="listagemLivros"></div>
+
+@section scripts{
+
+    <script type="text/javascript">
+
+        $(document).ready(configurarControles);
+
+        function configurarControles() {
+            
+            $("#btnPesquisar").click(listarLivros);
+
+            listarLivros();
+        }
+
+        function pagina(valor) {
+
+            var paginaElemento = $("input[name='pagina']");
+
+            var paginaAtual = parseInt(paginaElemento.val());
+
+            paginaElemento.val(paginaAtual + valor);
+
+            listarLivros();
+
+        }
+
+        function listarLivros() {
+
+            $.ajaxSetup({ cache: false });
+
+            $("#listagemLivros").load("@Url.Action("Listar")", $("form").serialize());
+
+        }
+
+    </script>
+
+}

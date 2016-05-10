@@ -1,0 +1,63 @@
+﻿@model IEnumerable<DemoCRUD.Models.Livro>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.Genero.Nome)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Titulo)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Autor)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.AnoEdicao)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Valor)
+            </th>
+            <th width="15%">Ações</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Genero.Nome)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Titulo)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Autor)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.AnoEdicao)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Valor)
+                </td>
+                <td>
+                    <a class="btn btn-warning" href="@Url.Action("Edit", new { id=item.Id })">
+                        <span class="glyphicon glyphicon-edit" aria-hidden="true"></span>
+                    </a>
+                    <a class="btn btn-success" href="@Url.Action("Details", new { id=item.Id })">
+                        <span class="glyphicon glyphicon-list" aria-hidden="true"></span>
+                    </a>
+                    <a class="btn btn-danger" href="@Url.Action("Delete", new { id=item.Id })">
+                        <span class="glyphicon glyphicon-trash" aria-hidden="true"></span>
+                    </a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+<nav>
+    <ul class="pager">
+        <li><a href="#" onclick="pagina(-1)">Anterior</a></li>
+        <li><a href="#" onclick="pagina(1)">Próximo</a></li>
+    </ul>
+</nav>
