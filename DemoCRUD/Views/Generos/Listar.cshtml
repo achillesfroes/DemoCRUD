@@ -1,0 +1,13 @@
+﻿@model IEnumerable<DemoCRUD.Models.Genero>
+
+<ul class="list-group">
+    <li class="list-group-item">
+        <a href="javascript:void(0)" data-genero-id="0" data-action="ListBooks">Todos</a>
+    </li>
+    @foreach (var item in Model)
+    {
+        <li class="list-group-item">
+            <a href="javascript:void(0)" data-genero-id="@item.Id" data-action="ListBooks">@item.Nome</a>
+        </li>
+    }
+</ul>

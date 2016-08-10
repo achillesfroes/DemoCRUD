@@ -7,10 +7,9 @@ namespace DemoCRUD.Infra
 {
     public class DadosFiltrados
     {
-        public int Pagina { get; set; }
-        public int Registros { get; set; }
-        public int Total { get; set; }
-        public int TotalFiltrado { get; set; }
-        public dynamic Dados { get; set; }
+        public int current { get; set; }
+        public int rowCount { get; set; }
+        public int total { get; set; }
+        public dynamic rows { get; set; }
     }
 }

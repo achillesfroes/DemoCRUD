@@ -1,13 +1,15 @@
-﻿using System;
+﻿using DemoCRUD.AcessoDados;
+using DemoCRUD.Infra;
+using DemoCRUD.Models;
+using DemoCRUD.ViewModels;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Entity;
 using System.Linq;
+using System.Linq.Dynamic;
 using System.Net;
-using System.Web;
 using System.Web.Mvc;
-using DemoCRUD.AcessoDados;
-using DemoCRUD.Models;
 
 namespace DemoCRUD.Controllers
 {
@@ -15,46 +17,71 @@ namespace DemoCRUD.Controllers
     {
         private LivrosContexto db = new LivrosContexto();
 
-        // GET: Livros
+        [HttpGet]
         public ActionResult Index()
         {
             return View();
         }
 
-        public PartialViewResult Listar(Livro livroFiltro, int pagina = 1, int registros = 10)
+        public ActionResult ListarPorGenero(int id)
         {
-            var livros = db.Livros.Include(l => l.Genero);
+
+            LivrosPorGeneroViewModel livrosPorGeneroVM = new LivrosPorGeneroViewModel();
+
+            List<Livro> livros = null;
+
+            if (id != 0)
+            {
+                Genero genero = db.Generos.FirstOrDefault(g => g.Id == id);
+
+                livrosPorGeneroVM.Genero = genero.Nome;
+                livros = db.Livros.Where(l => l.GeneroId == id).ToList();
+            }
+            else
+            {
+                livros = db.Livros.ToList();
+            }
+
+            livrosPorGeneroVM.Livros = livros;
+
+            return PartialView(livrosPorGeneroVM);
+        }
+
+
+        public JsonResult Listar(ParametrosPaginacao paginacao)
+        {
+            var livros = db.Livros.AsQueryable();
 
             int totalLivros = livros.Count();
 
-            if (!String.IsNullOrWhiteSpace(livroFiltro.Titulo))
+            if (!String.IsNullOrWhiteSpace(paginacao.SearchPhrase))
             {
-                livros = livros.Where(l => l.Titulo.Contains(livroFiltro.Titulo));
+                // tentar converter em número para pesquisa
+                int ano = 0;
+                int.TryParse(paginacao.SearchPhrase, out ano);
+
+                // tentar converter em décima para pesquisa
+                decimal valor = 0.0m;
+                decimal.TryParse(paginacao.SearchPhrase, out valor);
+
+                // utiliza Dynamic LINQ para fazer o filtro
+                livros = livros.Where("Titulo.Contains(@0) OR Autor.Contains(@0) OR AnoEdicao == @1 OR Valor == @2", paginacao.SearchPhrase, ano, valor);
             }
 
-            if (!String.IsNullOrWhiteSpace(livroFiltro.Autor))
-            {
-                livros = livros.Where(l => l.Titulo.Contains(livroFiltro.Autor));
-            }
-
-            if (livroFiltro.AnoEdicao != 0)
-            {
-                livros = livros.Where(l => l.AnoEdicao == livroFiltro.AnoEdicao);
-            }
-
-            if (livroFiltro.Valor != decimal.Zero)
-            {
-                livros = livros.Where(l => l.AnoEdicao == livroFiltro.AnoEdicao);
-            }
-
-            var livrosFiltrados = livros.OrderBy(l => l.Titulo).Skip((pagina - 1) * registros).Take(registros).ToList();
+            // utiliza Dynamic LINQ para fazer o ordenamento por um campo
+            var livrosFiltrados = livros.OrderBy(paginacao.CampoOrdenado).Skip((paginacao.Current - 1) * paginacao.RowCount).Take(paginacao.RowCount).ToList();
 
             int totalFiltrado = livrosFiltrados.Count();
 
-            return PartialView("_Listar", livrosFiltrados);
+            return Json(new DadosFiltrados() {
+                        current = paginacao.Current,
+                        rowCount = paginacao.RowCount,
+                        rows = livrosFiltrados,
+                        total = totalLivros
+            }, JsonRequestBehavior.AllowGet);
         }
 
-        // GET: Livros/Details/5
+        [HttpGet]
         public ActionResult Details(int? id)
         {
             if (id == null)
@@ -62,98 +89,118 @@ namespace DemoCRUD.Controllers
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             }
 
-            Livro livro = db.Livros.Find(id);
+            Livro livro = db.Livros.Include(l => l.Genero).FirstOrDefault(l => l.Id == id.Value);
 
             if (livro == null)
             {
                 return HttpNotFound();
             }
 
-            return View(livro);
+            return PartialView(livro);
         }
-
-        // GET: Livros/Create
+        
+        [HttpGet]
         public ActionResult Create()
         {
             ViewBag.GeneroId = new SelectList(db.Generos, "Id", "Nome");
-            return View();
+
+            return PartialView();
         }
 
-        // POST: Livros/Create
-        // To protect from overposting attacks, please enable the specific properties you want to bind to, for 
-        // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Create([Bind(Include = "Id,Titulo,Autor,AnoEdicao,Valor,GeneroId")] Livro livro)
+        public JsonResult Create(Livro livro)
         {
             if (ModelState.IsValid)
             {
                 db.Livros.Add(livro);
                 db.SaveChanges();
-                return RedirectToAction("Index");
+                return Json(new { resultado = true, message = "Livro cadastrado com sucesso" });
+            }
+            else
+            {
+                IEnumerable<ModelError> erros = ModelState.Values.SelectMany(item => item.Errors);
+
+                return Json(new { resultado = false, message = erros });
             }
 
-            ViewBag.GeneroId = new SelectList(db.Generos, "Id", "Nome", livro.GeneroId);
-            return View(livro);
         }
 
-        // GET: Livros/Edit/5
         public ActionResult Edit(int? id)
         {
             if (id == null)
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             }
+
             Livro livro = db.Livros.Find(id);
+
             if (livro == null)
             {
                 return HttpNotFound();
             }
+
             ViewBag.GeneroId = new SelectList(db.Generos, "Id", "Nome", livro.GeneroId);
-            return View(livro);
+
+            return PartialView(livro);
         }
 
-        // POST: Livros/Edit/5
-        // To protect from overposting attacks, please enable the specific properties you want to bind to, for 
-        // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Edit([Bind(Include = "Id,Titulo,Autor,AnoEdicao,Valor,GeneroId")] Livro livro)
+        public JsonResult Edit(Livro livro)
         {
             if (ModelState.IsValid)
             {
                 db.Entry(livro).State = EntityState.Modified;
                 db.SaveChanges();
-                return RedirectToAction("Index");
-            }
-            ViewBag.GeneroId = new SelectList(db.Generos, "Id", "Nome", livro.GeneroId);
-            return View(livro);
-        }
 
-        // GET: Livros/Delete/5
+                return Json(new { resultado = true, message = "Livro editado com sucesso" });
+            }
+            else
+            {
+                IEnumerable<ModelError> erros = ModelState.Values.SelectMany(item => item.Errors);
+
+                return Json(new { resultado = false, message = erros });
+            }
+        }
+        
         public ActionResult Delete(int? id)
         {
             if (id == null)
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             }
-            Livro livro = db.Livros.Find(id);
+
+            Livro livro = db.Livros.Include(l => l.Genero).FirstOrDefault(l => l.Id == id);
+
             if (livro == null)
             {
                 return HttpNotFound();
             }
-            return View(livro);
-        }
 
-        // POST: Livros/Delete/5
+            return PartialView(livro);
+        }
+        
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
-        public ActionResult DeleteConfirmed(int id)
+        public JsonResult DeleteConfirmed(int id)
         {
-            Livro livro = db.Livros.Find(id);
-            db.Livros.Remove(livro);
-            db.SaveChanges();
-            return RedirectToAction("Index");
+            try
+            {
+                Livro livro = db.Livros.Find(id);
+
+                db.Livros.Remove(livro);
+
+                db.SaveChanges();
+
+                return Json(new { resultado = true, message = "Livro excluído com sucesso" });
+            }
+            catch (Exception e)
+            {
+                return Json(new { resultado = false, message = e.Message });
+            }
+
+            
         }
 
         protected override void Dispose(bool disposing)

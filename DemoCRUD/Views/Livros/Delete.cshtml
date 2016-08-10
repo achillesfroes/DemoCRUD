@@ -1,18 +1,16 @@
 ﻿@model DemoCRUD.Models.Livro
 
 @{
-    ViewBag.Title = "Delete";
+    ViewBag.Title = "Apagar";
 }
 
-<h2>Delete</h2>
-
-<h3>Are you sure you want to delete this?</h3>
+<h2><span class="glyphicon glyphicon-remove"></span> @ViewBag.Title Livro</h2>
+<hr />
+<h3>Confirma a exclução esse livro?</h3>
 <div>
-    <h4>Livro</h4>
-    <hr />
     <dl class="dl-horizontal">
         <dt>
-            @Html.DisplayNameFor(model => model.Genero.Nome)
+            Gênero
         </dt>
 
         <dd>
@@ -53,12 +51,20 @@
 
     </dl>
 
-    @using (Html.BeginForm()) {
+    @using (Html.BeginForm("Delete", "Livros", FormMethod.Post, new { id = "formCrud" }))
+    {
         @Html.AntiForgeryToken()
-
         <div class="form-actions no-color">
-            <input type="submit" value="Delete" class="btn btn-default" /> |
-            @Html.ActionLink("Back to List", "Index")
+            <input type="button" value="Confirmar" class="btn btn-danger" />
         </div>
     }
 </div>
+
+<script src="~/Scripts/projeto/EnviarFormulario.js"></script>
+
+<script type="text/javascript">
+
+    var btnAcao = $("input[type='button']");
+    var formulario = $("#formCrud");
+
+</script>

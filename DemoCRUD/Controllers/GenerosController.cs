@@ -36,6 +36,11 @@ namespace DemoCRUD.Controllers
             return View(genero);
         }
 
+        public PartialViewResult Listar()
+        {
+            return PartialView(db.Generos.ToList());
+        }
+
         // GET: Generos/Create
         public ActionResult Create()
         {

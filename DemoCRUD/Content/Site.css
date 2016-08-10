@@ -1,6 +1,7 @@
 ﻿body {
-    padding-top: 50px;
+    padding-top: 90px;
     padding-bottom: 20px;
+    font-family: 'Segoe UI';
 }
 
 /* Set padding to keep content from hitting the edges */
@@ -16,9 +17,7 @@
     white-space: normal;
 }
 
-/* Set width on the form input elements since they're 100% wide by default */
-/*input,
-select,
-textarea {
-    max-width: 280px;
-}*/
+.navbar-default{
+    background-color: #ffffff;
+    font-size: 2.5rem;
+}

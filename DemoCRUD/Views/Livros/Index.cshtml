@@ -1,78 +1,50 @@
-﻿
-
-@{
+﻿@{
     ViewBag.Title = "Listar Livros";
 }
 
 <h2>@ViewBag.Title</h2>
 
 <p>
-    <a href="@Url.Action("Create")" class="btn btn-primary">
+    <a href="javascript:void(0)" data-action="Create" class="btn btn-primary">
         <span class="glyphicon glyphicon-plus" aria-hidden="true"></span>
         Novo Livro
     </a>
 </p>
 
-<form class="form-inline">
-    <div class="form-group">
-        <label class="sr-only">Título</label>
-        <input type="text" name="Titulo" class="form-control" placeholder="Título">
-    </div>
-    <div class="form-group">
-        <label class="sr-only">Autor</label>
-        <input type="text" name="Autor" class="form-control" placeholder="Autor">
-    </div>
-    <div class="form-group">
-        <label class="sr-only">Ano da Edição</label>
-        <input type="text" name="AnoEdicao" class="form-control" placeholder="Ano da Edição">
-    </div>
-    <div class="form-group">
-        <label class="sr-only">Valor</label>
-        <input type="text" name="Valor" class="form-control" placeholder="Valor">
-    </div>
-    <button type="button" id="btnPesquisar" class="btn btn-default">
-        <span class="glyphicon glyphicon-search" aria-hidden="true"></span>
-        Pesquisar
-    </button>
-    <input type="hidden" name="pagina" value="1" />
-    <input type="hidden" name="registros" value="10" />
-</form>
-
-<div id="listagemLivros"></div>
+<table id="gridDados" class="table table-striped">
+    <thead>
+        <tr>
+            <th data-column-id="Titulo" data-order="asc">Título</th>
+            <th data-column-id="Autor">Autor</th>
+            <th data-column-id="AnoEdicao">Ano da Edição</th>
+            <th data-column-id="Valor" data-formatter="Dinheiro">Valor</th>
+            <th data-formatter="Acoes" data-sortable="false">Ações</th>
+        </tr>
+    </thead>
+</table>
 
 @section scripts{
 
+    <script src="~/Scripts/toastr.js"></script>
+    @Scripts.Render("~/bundles/jquerybootgrid")
+    <script src="~/Scripts/projeto/ControlarGrid.js"></script>
+
     <script type="text/javascript">
+
+        numeral.language("pt-br");
+
+        var controller = "Livros";
+
+        var urlListar = "@Url.Action("Listar")";
 
         $(document).ready(configurarControles);
 
-        function configurarControles() {
-            
-            $("#btnPesquisar").click(listarLivros);
-
-            listarLivros();
-        }
-
-        function pagina(valor) {
-
-            var paginaElemento = $("input[name='pagina']");
-
-            var paginaAtual = parseInt(paginaElemento.val());
-
-            paginaElemento.val(paginaAtual + valor);
-
-            listarLivros();
-
-        }
-
-        function listarLivros() {
-
-            $.ajaxSetup({ cache: false });
-
-            $("#listagemLivros").load("@Url.Action("Listar")", $("form").serialize());
-
-        }
-
     </script>
 
+}
+
+@section estilos{
+
+    <link href="~/Content/jquery.bootgrid.css" rel="stylesheet" />
+    <link href="~/Content/toastr.css" rel="stylesheet" />
 }
